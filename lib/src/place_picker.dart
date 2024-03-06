@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_google_maps_webservices/places.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_api_headers/google_api_headers.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -9,11 +11,8 @@ import 'package:google_maps_place_picker_mb/providers/place_provider.dart';
 import 'package:google_maps_place_picker_mb/src/autocomplete_search.dart';
 import 'package:google_maps_place_picker_mb/src/controllers/autocomplete_search_controller.dart';
 import 'package:google_maps_place_picker_mb/src/google_map_place_picker.dart';
-import 'package:flutter_google_maps_webservices/places.dart';
 import 'package:http/http.dart';
 import 'package:provider/provider.dart';
-import 'dart:io' show Platform;
-
 import 'package:uuid/uuid.dart';
 
 typedef IntroModalWidgetBuilder = Widget Function(
@@ -77,6 +76,8 @@ class PlacePicker extends StatefulWidget {
     this.onMapTypeChanged,
     this.zoomGesturesEnabled = true,
     this.zoomControlsEnabled = false,
+    this.title,
+    this.titleStyle,
   }) : super(key: key);
 
   final String apiKey;
@@ -232,6 +233,11 @@ class PlacePicker extends StatefulWidget {
   /// Allow user to make visible the zoom button
   final bool zoomControlsEnabled;
 
+  /// title of the app bar
+  final String? title;
+
+  final TextStyle? titleStyle;
+
   @override
   _PlacePickerState createState() => _PlacePickerState();
 }
@@ -297,15 +303,12 @@ class _PlacePickerState extends State<PlacePicker> {
                   Scaffold(
                     key: ValueKey<int>(provider.hashCode),
                     resizeToAvoidBottomInset: widget.resizeToAvoidBottomInset,
-                    extendBodyBehindAppBar: true,
+                    extendBodyBehindAppBar: false,
                     appBar: AppBar(
                       key: appBarKey,
-                      automaticallyImplyLeading: false,
-                      iconTheme: Theme.of(context).iconTheme,
-                      elevation: 0,
-                      backgroundColor: Colors.transparent,
-                      titleSpacing: 0.0,
-                      title: _buildSearchBar(context),
+                      title: widget.title != null
+                          ? Text(widget.title!, style: widget.titleStyle)
+                          : _buildSearchBar(context),
                     ),
                     body: _buildMapWithLocation(),
                   ),
