@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_google_maps_webservices/places.dart';
@@ -8,8 +7,6 @@ import 'package:google_api_headers/google_api_headers.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_place_picker_mb/google_maps_place_picker.dart';
 import 'package:google_maps_place_picker_mb/providers/place_provider.dart';
-import 'package:google_maps_place_picker_mb/src/autocomplete_search.dart';
-import 'package:google_maps_place_picker_mb/src/controllers/autocomplete_search_controller.dart';
 import 'package:google_maps_place_picker_mb/src/google_map_place_picker.dart';
 import 'package:http/http.dart';
 import 'package:provider/provider.dart';
@@ -246,7 +243,6 @@ class _PlacePickerState extends State<PlacePicker> {
   GlobalKey appBarKey = GlobalKey();
   late final Future<PlaceProvider> _futureProvider;
   PlaceProvider? provider;
-  SearchBarController searchBarController = SearchBarController();
   bool showIntroModal = true;
 
   @override
@@ -258,8 +254,6 @@ class _PlacePickerState extends State<PlacePicker> {
 
   @override
   void dispose() {
-    searchBarController.dispose();
-
     super.dispose();
   }
 
@@ -285,7 +279,6 @@ class _PlacePickerState extends State<PlacePicker> {
   Widget build(BuildContext context) {
     return WillPopScope(
         onWillPop: () {
-          searchBarController.clearOverlay();
           return Future.value(true);
         },
         child: FutureBuilder<PlaceProvider>(
@@ -308,7 +301,7 @@ class _PlacePickerState extends State<PlacePicker> {
                       key: appBarKey,
                       title: widget.title != null
                           ? Text(widget.title!, style: widget.titleStyle)
-                          : _buildSearchBar(context),
+                          : null,
                     ),
                     body: _buildMapWithLocation(),
                   ),
@@ -344,66 +337,6 @@ class _PlacePickerState extends State<PlacePicker> {
             );
           },
         ));
-  }
-
-  Widget _buildSearchBar(BuildContext context) {
-    return Row(
-      children: <Widget>[
-        SizedBox(width: 15),
-        provider!.placeSearchingState == SearchingState.Idle &&
-                (widget.automaticallyImplyAppBarLeading ||
-                    widget.onTapBack != null)
-            ? IconButton(
-                onPressed: () {
-                  if (!showIntroModal ||
-                      widget.introModalWidgetBuilder == null) {
-                    provider?.debounceTimer?.cancel();
-                    if (widget.onTapBack != null) {
-                      widget.onTapBack!();
-                      return;
-                    }
-                    Navigator.maybePop(context);
-                  }
-                },
-                icon: Icon(
-                  Platform.isIOS ? Icons.arrow_back_ios : Icons.arrow_back,
-                ),
-                color: Colors.black.withAlpha(128),
-                padding: EdgeInsets.zero)
-            : Container(),
-        Expanded(
-          child: AutoCompleteSearch(
-              appBarKey: appBarKey,
-              searchBarController: searchBarController,
-              sessionToken: provider!.sessionToken,
-              hintText: widget.hintText,
-              searchingText: widget.searchingText,
-              debounceMilliseconds: widget.autoCompleteDebounceInMilliseconds,
-              onPicked: (prediction) {
-                if (mounted) {
-                  _pickPrediction(prediction);
-                }
-              },
-              onSearchFailed: (status) {
-                if (widget.onAutoCompleteFailed != null) {
-                  widget.onAutoCompleteFailed!(status);
-                }
-              },
-              autocompleteOffset: widget.autocompleteOffset,
-              autocompleteRadius: widget.autocompleteRadius,
-              autocompleteLanguage: widget.autocompleteLanguage,
-              autocompleteComponents: widget.autocompleteComponents,
-              autocompleteTypes: widget.autocompleteTypes,
-              strictbounds: widget.strictbounds,
-              region: widget.region,
-              initialSearchString: widget.initialSearchString,
-              searchForInitialValue: widget.searchForInitialValue,
-              autocompleteOnTrailingWhitespace:
-                  widget.autocompleteOnTrailingWhitespace),
-        ),
-        SizedBox(width: 5),
-      ],
-    );
   }
 
   _pickPrediction(Prediction prediction) async {
@@ -506,7 +439,6 @@ class _PlacePickerState extends State<PlacePicker> {
       },
       onMoveStart: () {
         if (provider == null) return;
-        searchBarController.reset();
       },
       onPlacePicked: widget.onPlacePicked,
       onCameraMoveStarted: widget.onCameraMoveStarted,
