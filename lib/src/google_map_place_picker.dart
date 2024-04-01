@@ -497,16 +497,18 @@ class GoogleMapPlacePicker extends StatelessWidget {
                   child: ClipOval(
                     child: Material(
                       child: InkWell(
-                          onTap: () {
-                            if (canBePicked) {
-                              onPlacePicked!(result);
-                            }
-                          },
-                          child: Icon(
-                              canBePicked
-                                  ? Icons.check_sharp
-                                  : Icons.app_blocking_sharp,
-                              color: buttonColor)),
+                        onTap: () {
+                          if (canBePicked) {
+                            onPlacePicked!(result);
+                          }
+                        },
+                        child: Icon(
+                          canBePicked
+                              ? Icons.check_sharp
+                              : Icons.app_blocking_sharp,
+                          color: buttonColor,
+                        ),
+                      ),
                     ),
                   ),
                 )
