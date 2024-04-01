@@ -56,6 +56,7 @@ class GoogleMapPlacePicker extends StatelessWidget {
     this.zoomGesturesEnabled = true,
     this.zoomControlsEnabled = false,
     this.fullMotion = false,
+    required this.buildSearchBar,
   }) : super(key: key);
 
   final LatLng initialTarget;
@@ -101,6 +102,8 @@ class GoogleMapPlacePicker extends StatelessWidget {
 
   /// Use never scrollable scroll-view with maximum dimensions to prevent unnecessary re-rendering.
   final bool fullMotion;
+
+  final Widget Function(BuildContext context)? buildSearchBar;
 
   _searchByCameraLocation(PlaceProvider provider) async {
     // We don't want to search location again if camera location is changed by zooming in/out.
@@ -183,6 +186,13 @@ class GoogleMapPlacePicker extends StatelessWidget {
                     children: [
                       _buildGoogleMap(context),
                       _buildPin(),
+                      if (buildSearchBar != null)
+                        Positioned(
+                          top: 10,
+                          left: 10,
+                          right: 10,
+                          child: buildSearchBar!.call(context),
+                        )
                     ],
                   ))),
         if (!this.fullMotion) ...[_buildGoogleMap(context), _buildPin()],

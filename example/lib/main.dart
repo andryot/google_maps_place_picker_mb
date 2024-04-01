@@ -1,17 +1,16 @@
-import 'package:flutter/material.dart';
-import 'package:google_maps_place_picker_mb/google_maps_place_picker.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-
-// ignore: implementation_imports, unused_import
-import 'package:google_maps_place_picker_mb/src/google_map_place_picker.dart'; // do not import this yourself
 import 'dart:io' show Platform;
 
-// Your api key storage.
-import 'keys.dart';
-
+import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 // Only to control hybrid composition and the renderer in Android
 import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
+import 'package:google_maps_place_picker_mb/google_maps_place_picker.dart';
+// ignore: implementation_imports, unused_import
+import 'package:google_maps_place_picker_mb/src/google_map_place_picker.dart'; // do not import this yourself
+
+// Your api key storage.
+import 'keys.dart';
 
 void main() => runApp(MyApp());
 
@@ -160,6 +159,7 @@ class _HomePageState extends State<HomePage> {
                           MaterialPageRoute(
                             builder: (context) {
                               return PlacePicker(
+                                showSearchBar: true,
                                 resizeToAvoidBottomInset:
                                     false, // only works in page mode, less flickery
                                 apiKey: Platform.isAndroid
@@ -180,6 +180,8 @@ class _HomePageState extends State<HomePage> {
                                 onMapCreated: (GoogleMapController controller) {
                                   print("Map created");
                                 },
+                                title: "Selecta a place",
+
                                 onPlacePicked: (PickResult result) {
                                   print(
                                       "Place picked: ${result.formattedAddress}");
@@ -321,6 +323,7 @@ class _HomePageState extends State<HomePage> {
                       width: MediaQuery.of(context).size.width * 0.75,
                       height: MediaQuery.of(context).size.height * 0.35,
                       child: PlacePicker(
+                          showSearchBar: true,
                           apiKey: Platform.isAndroid
                               ? APIKeys.androidApiKey
                               : APIKeys.iosApiKey,

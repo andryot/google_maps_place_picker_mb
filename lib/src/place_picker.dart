@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_google_maps_webservices/places.dart';
@@ -8,12 +7,13 @@ import 'package:google_api_headers/google_api_headers.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_place_picker_mb/google_maps_place_picker.dart';
 import 'package:google_maps_place_picker_mb/providers/place_provider.dart';
-import 'package:google_maps_place_picker_mb/src/autocomplete_search.dart';
 import 'package:google_maps_place_picker_mb/src/controllers/autocomplete_search_controller.dart';
 import 'package:google_maps_place_picker_mb/src/google_map_place_picker.dart';
 import 'package:http/http.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
+
+import 'autocomplete_search.dart';
 
 typedef IntroModalWidgetBuilder = Widget Function(
   BuildContext context,
@@ -57,7 +57,7 @@ class PlacePicker extends StatefulWidget {
     this.autocompleteLanguage,
     this.autocompleteComponents,
     this.autocompleteTypes,
-    this.strictbounds,
+    this.strictbounds = true,
     this.region,
     this.pickArea,
     this.selectInitialPosition = false,
@@ -78,6 +78,7 @@ class PlacePicker extends StatefulWidget {
     this.zoomControlsEnabled = false,
     this.title,
     this.titleStyle,
+    required this.showSearchBar,
   }) : super(key: key);
 
   final String apiKey;
@@ -111,6 +112,8 @@ class PlacePicker extends StatefulWidget {
   final List<Component>? autocompleteComponents;
   final bool? strictbounds;
   final String? region;
+
+  final bool showSearchBar;
 
   /// If set the picker can only pick addresses in the given circle area.
   /// The section will be highlighted.
@@ -305,6 +308,7 @@ class _PlacePickerState extends State<PlacePicker> {
                     resizeToAvoidBottomInset: widget.resizeToAvoidBottomInset,
                     extendBodyBehindAppBar: false,
                     appBar: AppBar(
+                      centerTitle: true,
                       key: appBarKey,
                       title: widget.title != null
                           ? Text(widget.title!, style: widget.titleStyle)
@@ -347,62 +351,33 @@ class _PlacePickerState extends State<PlacePicker> {
   }
 
   Widget _buildSearchBar(BuildContext context) {
-    return Row(
-      children: <Widget>[
-        SizedBox(width: 15),
-        provider!.placeSearchingState == SearchingState.Idle &&
-                (widget.automaticallyImplyAppBarLeading ||
-                    widget.onTapBack != null)
-            ? IconButton(
-                onPressed: () {
-                  if (!showIntroModal ||
-                      widget.introModalWidgetBuilder == null) {
-                    provider?.debounceTimer?.cancel();
-                    if (widget.onTapBack != null) {
-                      widget.onTapBack!();
-                      return;
-                    }
-                    Navigator.maybePop(context);
-                  }
-                },
-                icon: Icon(
-                  Platform.isIOS ? Icons.arrow_back_ios : Icons.arrow_back,
-                ),
-                color: Colors.black.withAlpha(128),
-                padding: EdgeInsets.zero)
-            : Container(),
-        Expanded(
-          child: AutoCompleteSearch(
-              appBarKey: appBarKey,
-              searchBarController: searchBarController,
-              sessionToken: provider!.sessionToken,
-              hintText: widget.hintText,
-              searchingText: widget.searchingText,
-              debounceMilliseconds: widget.autoCompleteDebounceInMilliseconds,
-              onPicked: (prediction) {
-                if (mounted) {
-                  _pickPrediction(prediction);
-                }
-              },
-              onSearchFailed: (status) {
-                if (widget.onAutoCompleteFailed != null) {
-                  widget.onAutoCompleteFailed!(status);
-                }
-              },
-              autocompleteOffset: widget.autocompleteOffset,
-              autocompleteRadius: widget.autocompleteRadius,
-              autocompleteLanguage: widget.autocompleteLanguage,
-              autocompleteComponents: widget.autocompleteComponents,
-              autocompleteTypes: widget.autocompleteTypes,
-              strictbounds: widget.strictbounds,
-              region: widget.region,
-              initialSearchString: widget.initialSearchString,
-              searchForInitialValue: widget.searchForInitialValue,
-              autocompleteOnTrailingWhitespace:
-                  widget.autocompleteOnTrailingWhitespace),
-        ),
-        SizedBox(width: 5),
-      ],
+    return AutoCompleteSearch(
+      appBarKey: appBarKey,
+      searchBarController: searchBarController,
+      sessionToken: provider!.sessionToken,
+      hintText: widget.hintText,
+      searchingText: widget.searchingText,
+      debounceMilliseconds: widget.autoCompleteDebounceInMilliseconds,
+      onPicked: (prediction) {
+        if (mounted) {
+          _pickPrediction(prediction);
+        }
+      },
+      onSearchFailed: (status) {
+        if (widget.onAutoCompleteFailed != null) {
+          widget.onAutoCompleteFailed!(status);
+        }
+      },
+      autocompleteOffset: widget.autocompleteOffset,
+      autocompleteRadius: widget.autocompleteRadius,
+      autocompleteLanguage: widget.autocompleteLanguage,
+      autocompleteComponents: widget.autocompleteComponents,
+      autocompleteTypes: widget.autocompleteTypes,
+      strictbounds: widget.strictbounds,
+      region: widget.region,
+      initialSearchString: widget.initialSearchString,
+      searchForInitialValue: widget.searchForInitialValue,
+      autocompleteOnTrailingWhitespace: widget.autocompleteOnTrailingWhitespace,
     );
   }
 
@@ -465,6 +440,7 @@ class _PlacePickerState extends State<PlacePicker> {
 
   Widget _buildMap(LatLng initialTarget) {
     return GoogleMapPlacePicker(
+      buildSearchBar: widget.showSearchBar ? _buildSearchBar : null,
       fullMotion: !widget.resizeToAvoidBottomInset,
       initialTarget: initialTarget,
       appBarKey: appBarKey,
@@ -542,7 +518,7 @@ class _PlacePickerState extends State<PlacePicker> {
                     showIntroModal = false;
                   });
                 }
-              })
+              }),
             ])
           : Container();
     });
