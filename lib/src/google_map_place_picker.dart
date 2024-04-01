@@ -186,19 +186,19 @@ class GoogleMapPlacePicker extends StatelessWidget {
                     children: [
                       _buildGoogleMap(context),
                       _buildPin(),
-                      if (buildSearchBar != null)
-                        Positioned(
-                          top: 10,
-                          left: 10,
-                          right: 10,
-                          child: buildSearchBar!.call(context),
-                        )
                     ],
                   ))),
         if (!this.fullMotion) ...[_buildGoogleMap(context), _buildPin()],
         _buildFloatingCard(),
         _buildMapIcons(context),
-        _buildZoomButtons()
+        _buildZoomButtons(),
+        if (buildSearchBar != null)
+          Positioned(
+            top: 10,
+            left: 10,
+            right: 10,
+            child: buildSearchBar!.call(context),
+          )
       ],
     );
   }
