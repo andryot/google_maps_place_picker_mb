@@ -195,7 +195,7 @@ class GoogleMapPlacePicker extends StatelessWidget {
           ],
           _buildFloatingCard(constraints),
           _buildMapIcons(context),
-          _buildZoomButtons(),
+          _buildZoomButtons(constraints),
           if (buildSearchBar != null)
             Positioned(
               top: 10,
@@ -392,7 +392,7 @@ class GoogleMapPlacePicker extends StatelessWidget {
     );
   }
 
-  Widget _buildZoomButtons() {
+  Widget _buildZoomButtons(BoxConstraints constraints) {
     return Selector<PlaceProvider, Tuple2<GoogleMapController?, LatLng?>>(
       selector: (_, provider) => new Tuple2<GoogleMapController?, LatLng?>(
           provider.mapController, provider.cameraPosition?.target),
@@ -403,7 +403,7 @@ class GoogleMapPlacePicker extends StatelessWidget {
           return Container();
         } else {
           return Positioned(
-            bottom: MediaQuery.of(context).size.height * 0.1 - 3.6,
+            bottom: constraints.maxHeight * 0.1 - 3.6,
             right: 2,
             child: Card(
               elevation: 4.0,
@@ -411,7 +411,7 @@ class GoogleMapPlacePicker extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12.0),
               ),
               child: Container(
-                width: MediaQuery.of(context).size.width * 0.15 - 13,
+                width: constraints.maxWidth * 0.15 - 13,
                 height: 107,
                 child: Column(
                   children: <Widget>[
