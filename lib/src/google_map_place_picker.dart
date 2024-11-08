@@ -414,6 +414,7 @@ class GoogleMapPlacePicker extends StatelessWidget {
                 width: constraints.maxWidth * 0.15 - 13,
                 height: 107,
                 child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
                     IconButton(
                         icon: Icon(Icons.add),
