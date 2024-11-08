@@ -173,37 +173,39 @@ class GoogleMapPlacePicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: <Widget>[
-        if (this.fullMotion)
-          SingleChildScrollView(
-              physics: const NeverScrollableScrollPhysics(),
-              child: SizedBox(
-                  width: MediaQuery.of(context).size.width,
-                  height: MediaQuery.of(context).size.height,
-                  child: Stack(
-                    alignment: AlignmentDirectional.center,
-                    children: [
-                      _buildGoogleMap(context),
-                      _buildPin(),
-                    ],
-                  ))),
-        if (!this.fullMotion) ...[
-          _buildGoogleMap(context),
-          _buildPin(),
+    return LayoutBuilder(builder: (context, constraints) {
+      return Stack(
+        children: <Widget>[
+          if (this.fullMotion)
+            SingleChildScrollView(
+                physics: const NeverScrollableScrollPhysics(),
+                child: SizedBox(
+                    width: MediaQuery.of(context).size.width,
+                    height: MediaQuery.of(context).size.height,
+                    child: Stack(
+                      alignment: AlignmentDirectional.center,
+                      children: [
+                        _buildGoogleMap(context),
+                        _buildPin(),
+                      ],
+                    ))),
+          if (!this.fullMotion) ...[
+            _buildGoogleMap(context),
+            _buildPin(),
+          ],
+          _buildFloatingCard(constraints),
+          _buildMapIcons(context),
+          _buildZoomButtons(),
+          if (buildSearchBar != null)
+            Positioned(
+              top: 10,
+              left: 10,
+              right: 10,
+              child: buildSearchBar!.call(context),
+            )
         ],
-        _buildFloatingCard(),
-        _buildMapIcons(context),
-        _buildZoomButtons(),
-        if (buildSearchBar != null)
-          Positioned(
-            top: 10,
-            left: 10,
-            right: 10,
-            child: buildSearchBar!.call(context),
-          )
-      ],
-    );
+      );
+    });
   }
 
   Widget _buildGoogleMapInner(PlaceProvider provider, MapType mapType) {
@@ -361,14 +363,15 @@ class GoogleMapPlacePicker extends StatelessWidget {
     }
   }
 
-  Widget _buildFloatingCard() {
+  Widget _buildFloatingCard(BoxConstraints constraints) {
     return Selector<PlaceProvider,
         Tuple4<PickResult?, SearchingState, bool, PinState>>(
       selector: (_, provider) => Tuple4(
-          provider.selectedPlace,
-          provider.placeSearchingState,
-          provider.isSearchBarFocused,
-          provider.pinState),
+        provider.selectedPlace,
+        provider.placeSearchingState,
+        provider.isSearchBarFocused,
+        provider.pinState,
+      ),
       builder: (context, data, __) {
         if ((data.item1 == null && data.item2 == SearchingState.Idle) ||
             data.item3 == true ||
@@ -377,7 +380,8 @@ class GoogleMapPlacePicker extends StatelessWidget {
           return Container();
         } else {
           if (selectedPlaceWidgetBuilder == null) {
-            return _defaultPlaceWidgetBuilder(context, data.item1, data.item2);
+            return _defaultPlaceWidgetBuilder(
+                context, data.item1, data.item2, constraints);
           } else {
             return Builder(
                 builder: (builderContext) => selectedPlaceWidgetBuilder!(
@@ -454,12 +458,16 @@ class GoogleMapPlacePicker extends StatelessWidget {
   }
 
   Widget _defaultPlaceWidgetBuilder(
-      BuildContext context, PickResult? data, SearchingState state) {
+    BuildContext context,
+    PickResult? data,
+    SearchingState state,
+    BoxConstraints constraints,
+  ) {
     return FloatingCard(
-      bottomPosition: MediaQuery.of(context).size.height * 0.1,
-      leftPosition: MediaQuery.of(context).size.width * 0.15,
-      rightPosition: MediaQuery.of(context).size.width * 0.15,
-      width: MediaQuery.of(context).size.width * 0.7,
+      leftPosition: constraints.maxWidth * .15,
+      rightPosition: constraints.maxWidth * .15,
+      bottomPosition: constraints.maxHeight * .1,
+      width: constraints.maxWidth * .7,
       borderRadius: BorderRadius.circular(12.0),
       elevation: 4.0,
       color: Theme.of(context).cardColor,
@@ -491,7 +499,7 @@ class GoogleMapPlacePicker extends StatelessWidget {
                 result.geometry!.location.lat,
                 result.geometry!.location.lng) <=
             pickArea!.radius;
-    MaterialStateColor buttonColor = MaterialStateColor.resolveWith(
+    WidgetStateColor buttonColor = WidgetStateColor.resolveWith(
         (states) => canBePicked ? Colors.lightGreen : Colors.red);
     return Container(
       margin: EdgeInsets.all(10),
